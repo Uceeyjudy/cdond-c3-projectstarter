@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs: 
-  slack: circleci/slack@4.10.1
+  aws-cli: circleci/aws-cli@2.0.3
 
 commands:
   print_pipeline_id:
@@ -36,12 +36,12 @@ commands:
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS = 1
-            if(( $SUCCESS==1 )); 
-            then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+            # if(( $SUCCESS==1 )); 
+            # then
+            # cd ~/project/backend
+            # npm install
+            # Add revert code here. You can find this in the Getting Started section.
+            #  exit 1
             fi
             
 jobs:
@@ -125,7 +125,7 @@ jobs:
           command: |
             cd frontend
             npm install
-            npm audit fix --audit-level=critical 
+            npm audit fix --audit-level=critical --force
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -146,6 +146,40 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --stack-name "mybackend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+              --region us-east-1
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --stack-name "myfrontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+              --region us-east-1
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            # Your code here
+            exit 1
+      - persist_to_workspace: 
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      # Here's where you will add some code to rollback on failure  
+      - destroy_environment
+
+
 
 workflows:
   default:
@@ -160,3 +194,8 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [test-feature-branch]
