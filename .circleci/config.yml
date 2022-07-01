@@ -12,16 +12,13 @@ commands:
       - run: echo << parameters.id >>
   destroy_environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    parameters:
-      id:
-        type: string
       # Add parameter here   
     steps:
       - run:
-          name: Destroy environments
+          name: destroy_environment
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation delete-stack --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}"
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -179,11 +176,6 @@ jobs:
             echo "[web]" >> .circleci/ansible/inventory.txt
             echo "$backend_ec2_public_ip" >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/inventory.txt
-
-      - persist_to_workspace: 
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
