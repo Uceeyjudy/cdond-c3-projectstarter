@@ -160,7 +160,6 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-              --region us-east-1
       - run:
           name: Ensure front-end infrastructure exist by creating frontend
           command: |
@@ -168,7 +167,6 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-              --region us-east-1
 
       - run:
           name: Add back-end ip to ansible inventory
@@ -182,8 +180,7 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure  
+            - project/.circleci/ansible/inventory.txt 
       - destroy_environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   configure-infrastructure:
@@ -203,7 +200,8 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-      # Here's where you will add some code to rollback on failure  
+      - destroy_environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 
 workflows:
