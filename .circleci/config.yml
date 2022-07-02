@@ -3,43 +3,48 @@ version: 2.1
 orbs: 
   aws-cli: circleci/aws-cli@2.0.3
 
+parameters:
+  workflow_id:
+    type: string
+    default: '${CIRCLE_WORKFLOW_ID}'
 commands:
-  print_pipeline_id:
-    parameters:
-      id: 
-        type: string
-    steps:
-      - run: echo << parameters.id >>
+
   destroy_environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-      # Add parameter here   
+    parameters:
+      workflow_id:
+        type: string 
     steps:
       - run:
           name: destroy_environment
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}"
+            echo "Destroying environment: << parameters.workflow_id >>"
+            aws cloudformation delete-stack \
+            --stack-name backend-<<parameters.workflow_id>>
+            aws s3 rm s3://udapeople-<<parameters.workflow_id>> --recursive
+            aws cloudformation delete-stack \
+            --stack-name frontend-<<parameters.workflow_id>>
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      id:
-        type: string
-      # Add parameter here     
+      workflow_id:
+        type: string    
     steps:
       - run:
           name: Revert migrations
-          # Add when this will run
           command: |
-            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS = 1
-            # if(( $SUCCESS==1 )); 
-            # then
-            # cd ~/project/backend
-            # npm install
-            # Add revert code here. You can find this in the Getting Started section.
-            #  exit 1
+            if(( $SUCCESS==1 )); 
+            then
+              cd ~/project/backend
+              npm install
+              npm build
+              npm run migration:revert
             fi
+            
             
 jobs:
   build-frontend:
@@ -88,7 +93,7 @@ jobs:
           command: |
             cd frontend
             npm install
-            npm run build
+            npm run test
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -101,11 +106,11 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Back-end build
+          name: Back-end Test
           command: |
             cd backend
             npm install
-            npm run build
+            npm run test
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -118,7 +123,7 @@ jobs:
       - restore_cache:
           keys: [frontend-build]
       - run:
-          name: Scan front-end
+          name: Analyse front-end
           command: |
             cd frontend
             npm install
@@ -168,19 +173,19 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            # Your code here
-            backend_ec2_public_ip=$(aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --output text) 
+            echo $(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text) >> ~/project/.circleci/ansible/inventory.txt
+            cat ~/project/.circleci/ansible/inventory.txt
             echo "[web]" >> .circleci/ansible/inventory.txt
-            echo "$backend_ec2_public_ip" >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure  
       - destroy_environment
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
 
 
