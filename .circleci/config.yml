@@ -33,10 +33,14 @@ commands:
         type: string    
     steps:
       - run:
+          name: Install dependencies
+          command: |
+            apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+      - run:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure https://kvdb.io/4a1GJgbRMi7sq3iMig8mFL/migration_<< parameters.workflow_id >>)
+            SUCCESS=$(curl --insecure https://kvdb.io/4a1GJgbRMi7sq3iMig8mFL/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1')
             if (($SUCCESS == 1))
             then
               cd ~/project/backend
@@ -367,7 +371,7 @@ jobs:
 
 
 
-my_workflows:
+workflows:
   default:
     jobs:
       - build-frontend
