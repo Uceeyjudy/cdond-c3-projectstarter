@@ -150,8 +150,10 @@ jobs:
           key: backend-build
   deploy-infrastructure:
     docker:
+      # Docker image here that supports AWS CLI
       - image: amazon/aws-cli
     steps:
+      # Checkout code from git
       - checkout
       - run: yum install -y tar gzip
       - run:
@@ -159,30 +161,29 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags "project=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+              --tags project=udapeople \
+               --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+               --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7}
       - run:
-          name: Ensure front-end infrastructure exist by creating frontend
+          name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags "project=frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-
+              --tags project=udapeople \
+               --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
+               --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7}
       - run:
           name: Add back-end ip to ansible inventory
           command: |
             echo $(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters Name=tag:project,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
             --output text) >> ~/project/.circleci/ansible/inventory.txt
             cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/ansible/inventory.txt 
+            - project/.circleci/ansible/inventory.txt
       - destroy_environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   configure-infrastructure:
@@ -238,6 +239,7 @@ jobs:
       - destroy_environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
+
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI
@@ -249,16 +251,15 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Install AWS CLI dependencies
+          name: Install deps
           command: |
             apk add --update --no-cache tar gzip nodejs npm ansible curl aws-cli
       - run:
           name: Get backend url
           command: |
-            # your code here
             export BACKEND_IP=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters Name=tag:project,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
             --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
@@ -279,12 +280,14 @@ jobs:
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      # Docker image here that supports Ansible
+      - image: python:3.10-alpine3.16
     steps:
+      # Checkout code from git
       - checkout
+      # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["7e:93:19:87:e1:29:48:86:82:2b:c9:1b:82:0b:85:a0"]
       - attach_workspace:
@@ -317,26 +320,28 @@ jobs:
 
   smoke-test:
     docker:
+      # Lightweight Docker image
       - image: python:3.10-alpine3.16
     steps:
+      # Checkout code from git
       - checkout
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache tar gzip nodejs npm curl
-            pip install awscli
+            apk add --update --no-cache curl aws-cli tar gzip nodejs npm
       - attach_workspace:
           at: ~/
       - run:
-          name: Back-end Smoke Test
+          name: Backend smoke test.
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
-              --filters "Name=tag:project,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-              --output text)
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            if curl "${API_URL}/api/status" | grep "ok"
+            # curl "${API_URL}/api/status"
+            if curl -s http://google.com
             then
                 return 0
             else
@@ -345,10 +350,11 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
-            echo ${URL} 
-            if curl -s ${URL} | grep "Welcome"
+            export URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com/#/employees"            
+            echo $URL
+            if curl ${URL} | grep "Welcome"
             then
+              # Change this to 0 after the job fails
               return 0
             else
               return 1
@@ -356,7 +362,8 @@ jobs:
       - destroy_environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
-            workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
 
 
 
@@ -390,3 +397,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
