@@ -40,7 +40,7 @@ commands:
             if (($SUCCESS == 1))
             then
               cd ~/project/backend
-              npm instal
+              npm install
               npm run build
               npm run migrations:revert
             fi
