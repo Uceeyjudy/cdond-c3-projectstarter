@@ -33,6 +33,11 @@ commands:
         type: string    
     steps:
       - run:
+          name: Install curl
+          command: |
+            sudo apt update
+            sudo apt install curl
+      - run:
           name: Revert migrations
           when: on_fail
           command: |
