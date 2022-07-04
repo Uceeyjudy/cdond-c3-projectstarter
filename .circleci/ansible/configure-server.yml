@@ -39,5 +39,4 @@
 
   roles:
     - configure-server
-    - name: "install python for Ansible."
 
