@@ -33,7 +33,7 @@ commands:
         type: string    
     steps:
       - run:
-         name: Revert migrations
+          name: Revert migrations
           when: on_fail
           command: |
             SUCCESS=$(curl --insecure  https://kvdb.io/HQjMintdxoibtXK89rTuhX/migration_${CIRCLE_WORKFLOW_ID:0:7})
