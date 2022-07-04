@@ -36,7 +36,7 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure  https://kvdb.io/HQjMintdxoibtXK89rTuhX/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl --insecure  https://kvdb.io/4a1GJgbRMi7sq3iMig8mFL/migration_${CIRCLE_WORKFLOW_ID:0:7})
             if (($SUCCESS == 1))
             then
               cd ~/project/backend
@@ -233,7 +233,7 @@ jobs:
           command: |
             if grep -q "migrations" ~/project/backend/migrations_dump.txt
             then
-              curl --insecure https://kvdb.io/HQjMintdxoibtXK89rTuhX/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
+              curl --insecure https://kvdb.io/4a1GJgbRMi7sq3iMig8mFL/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             fi
       # Here's where you will add some code to rollback on failure
       - destroy_environment:
