@@ -399,6 +399,33 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
 
+  cleanup:
+      docker:
+        - image: amazon/aws-cli
+      steps:
+        - checkout
+        - run:
+            name: Get WorkflowID and Clean Ups
+            command: |
+              export OldWorkFlowID=$(aws cloudformation \
+                list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                --no-paginate --output text)
+              echo OldWorkFlowID: "${OldWorkFlowID}"
+              export CurrentWorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+              echo CurrentWorkflowID: "${CurrentWorkflowID}"
+              export STACKS=$(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+                --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
+              echo Stack names: "${STACKS[@]}"
+              export OldWorkflowID="$WorkFlowID"
+              if [[ "$OldWorkflowID" =~ "CurrentWorkflowID"  ]]
+              then
+                echo "$OldWorkflowID" is not the same as "$WorkFlowID" deleting Old Stack
+                aws s3 rm "s3://udapeople-$OldWorkFlowID" --recursive
+                aws cloudformation delete-stack --stack-name "udapeople-backend-$OldWorkFlowID"
+                aws cloudformation delete-stack --stack-name "udapeople-frontend-$OldWorkFlowID"
+              else
+                echo "nothing to needs to be done..."
+              fi 
 
 
 workflows:
@@ -431,3 +458,5 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
