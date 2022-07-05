@@ -1,0 +1,4 @@
+Hello, this is Judith Ezenwosu Project 3, submission
+Public Url to GitHub repository [https://github.com/Uceeyjudy/cdond-c3-projectstarter]
+
+Public URL for your S3 Bucket (aka, my green candidate front-end) [https://d3afz9jgjf2kd0.cloudfront.net]

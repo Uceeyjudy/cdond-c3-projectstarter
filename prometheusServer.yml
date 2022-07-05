@@ -1,10 +1,9 @@
 Description: |
   This template deploys prometheus in the VPC vpc-0492b2b84bd1a3194 (us-west-1)
   To execute please run this:
-  aws cloudformation deploy --stack-name prometheus --template-file prometheusServer.yml --capabilities CAPABILITY_IAM \
-  --parameter-overrides AuthEmail=judyeze.alertmanger@gmail.com EmailPassword=judyeze123@ FromEmail=judyeze.alertmanger@gmail.com ToEmail=judyeze.alertmanger@gmail.com \
-  VPC=vpc-01871de1e9fd2a9ec AZ=us-east-1a Subnet=subnet-02099a757832523c7 \
-  aws cloudformation deploy --stack-name prometheus --template-file prometheusServer.yml - capabilities CAPABILITY_IAM –parameter-overrides AuthEmail=judyeze.alertmanger@gmail.com EmailPassword=judyeze123@ FromEmail=judyeze.alertmanger@gmail.com ToEmail=judyeze.alertmanager@gmail.com  VPC=vpc-01871de1e9fd2a9ec AZ=us-east-1a Subnet=subnet-02099a757832523c7
+  aws cloudformation deploy --stack-name prometheus2 --template-file prometheusServer.yml --capabilities CAPABILITY_IAM \
+  --parameter-overrides AuthEmail=judith.ezenwosu@gmail.com EmailPassword=mzerjatnewzarxrw FromEmail=judith.ezenwosu@gmail.com ToEmail=judith.ezenwosu@gmail.com \
+  VPC=vpc-01871de1e9fd2a9ec AZ=us-east-1b Subnet=subnet-0968abaa8fdb61b31
 Parameters:
   VPC:
     Description: Deploy the instance in this VPC
@@ -246,15 +245,15 @@ Resources:
           echo "receivers:" >> alertmanager.yml
           echo "  - name: email-me" >> alertmanager.yml
           echo "    email_configs:" >> alertmanager.yml
-          echo "      - to: ${judyeze.alertmanager@gmail.com}" >> alertmanager.yml
-          echo "        from: ${judyeze.alertmanager@gmail.com}" >> alertmanager.yml
+          echo "      - to: judith.ezenwosu@gmail.com" >> alertmanager.yml
+          echo "        from: judith.ezenwosu@gmail.com" >> alertmanager.yml
           echo "        smarthost: smtp.gmail.com:587" >> alertmanager.yml
-          echo "        auth_username: ${judyeze.alertmanager@gmail.com}" >> alertmanager.yml
-          echo "        auth_identity: ${judyeze.alertmanager@gmail.com}" >> alertmanager.yml
-          echo "        auth_password: ${judyeze123@}" >> alertmanager.yml
+          echo "        auth_username: judith.ezenwosu@gmail.com" >> alertmanager.yml
+          echo "        auth_identity: judith.ezenwosu@gmail.com" >> alertmanager.yml
+          echo "        auth_password: mzerjatnewzarxrw" >> alertmanager.yml
           # Reposition alertmanager.yml
           sudo mv alertmanager.yml /etc/prometheus/alertmanager.yml
-          # csuzceqgjrskelub
+          # mzerjatnewzarxrw
           # Alertmanager rules
           echo "groups:" > rules.yml
           echo "  - name: Down" >> rules.yml
