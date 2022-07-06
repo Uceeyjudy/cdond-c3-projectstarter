@@ -95,10 +95,9 @@ jobs:
       - run:
           name: Run front-end test
           command: |
-            exit 1
-            #cd frontend
-            #npm install
-            #npm run test
+            cd frontend
+            npm install
+            npm run test
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
