@@ -36,27 +36,39 @@
 ############################################
 
 - name: "install nodejs and npm"
-    become: yes
-    apt:
-      name: ["nodejs", "npm"]
-      state: latest
-      update_cache: yes
+  become: yes
+  apt:
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
 
-  - name: "install n"
-    become: yes
-    npm:
-      name: n
-      global: yes
-      production: yes
+- name: "install n"
+  become: yes
+  npm:
+    name: n
+    global: yes
+    production: yes
 
-  - name: "install nodejs 13.8.0"
-    become: yes
-    shell: n 13.8.0
+- name: "install nodejs 13.8.0"
+  become: yes
+  shell: n 13.8.0
 
-  - name: "install pm2"
-    become: yes
-    npm:
-      name: pm2
-      global: yes
-      production: yes
-      state: present
+- name: "install pm2"
+  become: yes
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+
+- name: extract artifact
+  become: yes
+  unarchive:
+    src: files/artifact.tar.gz
+    dest: .
+
+- name: start app
+  become: yes
+  shell: |
+    pm2 stop all
+    pm2 start npm -- start
