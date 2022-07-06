@@ -36,6 +36,7 @@ commands:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip nodejs npm aws-cli curl
+            sudo apt install curl
       - run:
           name: Revert migrations
           when: on_fail
