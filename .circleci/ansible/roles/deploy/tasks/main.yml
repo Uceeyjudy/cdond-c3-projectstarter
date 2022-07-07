@@ -1,46 +1,27 @@
 ---
-#- name: 'update and upgrade packages.'
-#  become: yes
-#  apt:
-#    upgrade: yes
-#    update_cache: yes
-#    cache_valid_time: 86400
-#- name: remove unneeded dependencies
-#  become: yes
-#  apt:
-#    autoremove: yes
-#- name: install dependencies
-#  become: yes
-#  apt:
-#    name: ['nodejs', 'npm']
-#    state: latest
-#    update_cache: yes
-#- name: install pm2
-#  become: yes
-#  npm:
-#    name: pm2
-#    global: yes
-#    state: latest
-#    production: yes
-#- name: extract artifact
-#  become: yes
-#  unarchive:
-#    src: files/artifact.tar.gz
-#    dest: .
-
-#- name: start app
-#  become: yes
-#  shell: |
-#    pm2 stop all
-#    pm2 start npm -- start
-############################################
-
-- name: "install nodejs and npm"
+- name: 'update and upgrade packages.'
   become: yes
   apt:
-    name: ["nodejs", "npm"]
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+- name: remove unneeded dependencies
+  become: yes
+  apt:
+    autoremove: yes
+- name: install dependencies
+  become: yes
+  apt:
+    name: ['nodejs', 'npm']
     state: latest
     update_cache: yes
+- name: install pm2
+  become: yes
+  npm:
+    name: pm2
+    global: yes
+    state: latest
+    production: yes
 
 - name: "install n"
   become: yes
@@ -52,15 +33,7 @@
 - name: "install nodejs 13.8.0"
   become: yes
   shell: n 13.8.0
-
-- name: "install pm2"
-  become: yes
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
-
+      
 - name: extract artifact
   become: yes
   unarchive:
@@ -72,3 +45,5 @@
   shell: |
     pm2 stop all
     pm2 start npm -- start
+############################################
+
