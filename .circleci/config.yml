@@ -298,8 +298,10 @@ jobs:
             at: ~/
       - run:
           name: Install dependencies
-          command: |
-            apk add --update --no-cache tar gzip nodejs npm tree aws-cli ansible
+          command: | # Install Dependencies
+            apk add --update ansible
+            pip install awscli
+            apk add --update --no-cache tar gzip nodejs npm curl
       - run:
           name: Deploy backend
           command: |

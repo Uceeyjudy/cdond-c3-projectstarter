@@ -9,13 +9,13 @@
   become: yes
   apt:
     autoremove: yes
-- name: install dependencies
+- name: "install npm"
   become: yes
   apt:
-    name: ['nodejs', 'npm']
+    name: 'npm'
     state: latest
     update_cache: yes
-- name: install pm2
+- name: "install pm2"
   become: yes
   npm:
     name: pm2
@@ -34,16 +34,14 @@
   become: yes
   shell: n 13.8.0
       
-- name: extract artifact
+- name: "extract artifact"
   become: yes
   unarchive:
     src: files/artifact.tar.gz
     dest: .
 
-- name: start app
+- name: "start app"
   become: yes
   shell: |
     pm2 stop all
     pm2 start npm -- start
-############################################
-
