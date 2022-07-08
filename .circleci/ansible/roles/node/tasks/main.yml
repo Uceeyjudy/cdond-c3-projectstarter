@@ -1,47 +1,31 @@
 ---
-- name: 'update and upgrade packages.'
+- name: "update apt packages."
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
   become: yes
   apt:
     upgrade: yes
-    update_cache: yes
-    cache_valid_time: 86400
-- name: remove unneeded dependencies
+
+
+- name: remove dependencies that are no longer required
   become: yes
   apt:
     autoremove: yes
-- name: "install npm"
+
+- name: "install dependencies."
   become: yes
   apt:
-    name: 'npm'
+    name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
+
 - name: "install pm2"
   become: yes
   npm:
     name: pm2
     global: yes
-    state: latest
     production: yes
-
-- name: "install n"
-  become: yes
-  npm:
-    name: n
-    global: yes
-    production: yes
-
-- name: "install nodejs 13.8.0"
-  become: yes
-  shell: n 13.8.0
-      
-- name: "extract artifact"
-  become: yes
-  unarchive:
-    src: files/artifact.tar.gz
-    dest: .
-
-- name: "start app"
-  become: yes
-  shell: |
-    pm2 stop all
-    pm2 start npm -- start
+    state: present
