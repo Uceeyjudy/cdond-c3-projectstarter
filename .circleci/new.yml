@@ -82,3 +82,5 @@
             echo "Contents  of the inventory.txt file is ------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
+DG5w1J7LyNDeZXEbq2YrLQ
+https://kvdb.io/DG5w1J7LyNDeZXEbq2YrLQ
