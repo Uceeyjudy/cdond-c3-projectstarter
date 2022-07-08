@@ -335,22 +335,22 @@ jobs:
             apk add --update --no-cache curl aws-cli tar gzip nodejs npm
       - attach_workspace:
           at: ~/
-      - run:
-          name: Backend smoke test.
+     - run:
+          name: Back-end Smoke Test
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-            --output text)
+              --filter "Name=instance-state-name,Values=running" \
+              --query "Reservations[*].Instances[*].[PublicIpAddress]" \
+              --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            # curl "${API_URL}/api/status"
-            if curl -s http://google.com
+            if curl "${API_URL}/api/status" | grep "ok"
             then
                 return 0
             else
                 return 1
             fi
+
       - run:
           name: Frontend smoke test.
           command: |
@@ -358,7 +358,6 @@ jobs:
             echo $URL
             if curl ${URL} | grep "Welcome"
             then
-              # Change this to 0 after the job fails
               return 0
             else
               return 1
