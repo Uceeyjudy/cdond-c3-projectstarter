@@ -1,0 +1,4 @@
+Hello, this is Judith Ezenwosu Project 3, submission
+Public Url to GitHub repository [https://github.com/Uceeyjudy/cdond-c3-projectstarter]
+Public Url for S3 Bucket [http://udapeople-4e07903.s3-website-us-east-1.amazonaws.com]
+Public URL for Cloudfront [https://d3afz9jgjf2kd0.cloudfront.net]
